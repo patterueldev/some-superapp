@@ -9,6 +9,7 @@
 4. docs/TECH_STACK.md (choices & rationale)
 5. docs/ARCHITECTURE.md (structure & patterns)
 6. docs/INFRASTRUCTURE.md (deployment & CI/CD)
+7. docs/MCP_SETUP.md (Model Context Protocol servers)
 
 ## Conventions
 - Branch: `<type>/#<issue>-<short-hyphenated-desc>`
@@ -51,12 +52,18 @@ Note: Draft project items (without issues) require the Project UI; CLI cannot cr
 - Keep docs updated as decisions evolve
 
 ## Common Commands (fill per project)
-- Install:
-- Dev:
-- Test:
-- Lint/Format:
-- Build:
-- Deploy:
+- Install: See platform-specific READMEs
+- Dev: (iOS) `open ios/SomeSuperApp.xcodeproj`
+- Test: (iOS) `xcodebuild test -project ios/SomeSuperApp.xcodeproj -scheme SomeSuperApp -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.5'`
+- Lint/Format: TBD
+- Build: (iOS) `cd ios && xcodegen generate && xcodebuild -project SomeSuperApp.xcodeproj -scheme SomeSuperApp build`
+- Deploy: TBD
+
+## MCP Servers
+- **SwiftLens**: Semantic Swift code analysis (see docs/MCP_SETUP.md)
+  - Use for symbol lookups, references, type info
+  - Requires building project index first
+  - Ask: "Run swift_check_environment" to verify setup
 
 ## Where Things Live
 - docs/: reference materials

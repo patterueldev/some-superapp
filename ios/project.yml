@@ -1,0 +1,109 @@
+name: SomeSuperApp
+
+options:
+  bundleIdPrefix: com.patterueldev
+  deploymentTarget:
+    iOS: "18.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+  groupSortPosition: top
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "18.0"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    ENABLE_PREVIEWS: YES
+
+targets:
+  SomeSuperApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: SomeSuperApp
+    settings:
+      base:
+        PRODUCT_NAME: Some SuperApp
+        PRODUCT_BUNDLE_IDENTIFIER: com.patterueldev.somesuperapp
+        INFOPLIST_FILE: SomeSuperApp/Info.plist
+        DEVELOPMENT_TEAM: "" # Will be set per developer
+        CODE_SIGN_STYLE: Automatic
+        SWIFT_VERSION: "6.0"
+        ENABLE_PREVIEWS: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+    info:
+      path: SomeSuperApp/Info.plist
+      properties:
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        UILaunchScreen:
+          UIColorName: ""
+          UIImageName: ""
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations: {}
+    entitlements:
+      path: SomeSuperApp/SomeSuperApp.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.patterueldev.somesuperapp
+        com.apple.developer.icloud-services:
+          - CloudKit
+        com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)com.patterueldev.somesuperapp
+
+  SomeSuperAppTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: SomeSuperAppTests
+    dependencies:
+      - target: SomeSuperApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.patterueldev.somesuperapp.tests
+        CODE_SIGN_STYLE: Automatic
+        SWIFT_VERSION: "6.0"
+
+  SomeSuperAppUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: SomeSuperAppUITests
+    dependencies:
+      - target: SomeSuperApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.patterueldev.somesuperapp.uitests
+        CODE_SIGN_STYLE: Automatic
+        SWIFT_VERSION: "6.0"
+
+schemes:
+  SomeSuperApp:
+    build:
+      targets:
+        SomeSuperApp: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - name: SomeSuperAppTests
+        - name: SomeSuperAppUITests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release
