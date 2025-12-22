@@ -75,6 +75,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.patterueldev.somesuperapp.tests
         CODE_SIGN_STYLE: Automatic
         SWIFT_VERSION: "6.0"
+        GENERATE_INFOPLIST_FILE: YES
 
   SomeSuperAppUITests:
     type: bundle.ui-testing
@@ -88,6 +89,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.patterueldev.somesuperapp.uitests
         CODE_SIGN_STYLE: Automatic
         SWIFT_VERSION: "6.0"
+        GENERATE_INFOPLIST_FILE: YES
 
 schemes:
   SomeSuperApp:
