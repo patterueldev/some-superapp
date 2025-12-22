@@ -7,6 +7,16 @@ This project uses MCP servers to enhance AI assistant capabilities.
 ### SwiftLens
 **Purpose**: Semantic-level Swift code analysis with SourceKit-LSP integration
 
+**Works with**: 
+- VS Code (with MCP extension)
+- GitHub Copilot in VS Code
+- Claude Desktop
+- Cursor
+- Windsurf
+- Cline
+- Continue
+- And other MCP-compatible clients
+
 **Configuration**:
 ```json
 {
@@ -40,14 +50,40 @@ This project uses MCP servers to enhance AI assistant capabilities.
 
 ## Configuration Files by Platform
 
+### VS Code (with MCP extension or GitHub Copilot)
+Location: `.vscode/mcp.json` (project root)
+
+**Install VS Code MCP Extension**:
+```bash
+# Install the MCP extension from VS Code marketplace
+# Search for "MCP" or install specific extension like:
+# - "MCP Server"
+# - "Continue" (has MCP support)
+```
+
+Then add configuration to `.vscode/mcp.json`:
+```json
+{
+  "mcpServers": {
+    "swiftlens": {
+      "command": "uvx",
+      "args": ["swiftlens"]
+    }
+  }
+}
+```
+
 ### Claude Desktop
 Location: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 ### Cursor
-Location: `.cursor/mcp.json` (project-specific) or global settings
+Location: `.cursor/mcp.json` (project-specific) or `~/.cursor/mcp.json` (global)
 
 ### Windsurf
-Location: Global MCP settings in application
+Location: `~/.codeium/windsurf/mcp_config.json`
+
+### Cline (VS Code extension)
+Location: `.vscode/mcp.json` (project root)
 
 ## Initial Setup
 
@@ -56,15 +92,41 @@ Location: Global MCP settings in application
 # Python (if not already installed)
 brew install python@3.10
 
-# Xcode should already be installed
+# Xcode should already be installed (full version, not just CLI tools)
 xcode-select -p  # Verify Xcode installation
 ```
 
-### 2. Configure MCP Server
+### 2. Install MCP Extension (for VS Code)
 
-Add the SwiftLens configuration to your AI assistant's MCP settings.
+For GitHub Copilot or other VS Code-based editors:
 
-### 3. Build iOS Project Index
+```bash
+# Option A: Use "Continue" extension (built-in MCP support)
+# Search "Continue" in VS Code Extensions marketplace
+
+# Option B: Use standalone MCP extension
+# Search "MCP" in VS Code Extensions marketplace
+```
+
+### 3. Configure MCP Server
+
+**For VS Code / GitHub Copilot:**
+Create or edit `.vscode/mcp.json` in project root:
+```json
+{
+  "mcpServers": {
+    "swiftlens": {
+      "command": "uvx",
+      "args": ["swiftlens"]
+    }
+  }
+}
+```
+
+**For other clients:**
+Add SwiftLens configuration to your AI assistant's MCP settings file (see Configuration Files by Platform section above).
+
+### 4. Build iOS Project Index
 
 ```bash
 cd ios
@@ -74,12 +136,20 @@ xcodebuild -project SomeSuperApp.xcodeproj \
   build
 ```
 
-### 4. Verify Setup
+### 5. Verify Setup
 
 Ask your AI assistant:
 ```
 "Run swift_check_environment to verify SwiftLens is working"
 ```
+
+Or from the command line:
+```bash
+cd /path/to/project
+uvx swiftlens
+```
+
+You should see: `✓ SwiftLens MCP server started`
 
 ## Usage Examples
 

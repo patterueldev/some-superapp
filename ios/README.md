@@ -51,49 +51,34 @@ Or double-click the generated `.xcodeproj` file.
 
 ### 6. (Optional) Set Up SwiftLens MCP
 
-SwiftLens provides semantic-level Swift code analysis for AI assistants using SourceKit-LSP:
+SwiftLens provides semantic-level Swift code analysis that works with GitHub Copilot in VS Code, Claude Desktop, Cursor, and other MCP-compatible clients.
 
-```bash
-# SwiftLens is installed via uvx (Python package manager)
-# No manual installation needed - it will be auto-installed when configured
+**Quick Setup (VS Code / GitHub Copilot)**:
 
-# Configure in your MCP settings (e.g., Claude Desktop, Cursor, etc.)
-# Add to mcpServers section:
-{
-  "mcpServers": {
-    "swiftlens": {
-      "command": "uvx",
-      "args": ["swiftlens"]
-    }
-  }
-}
-```
+1. Install an MCP extension for VS Code:
+   - **Continue** (recommended, has built-in MCP support)
+   - Or search "MCP" in VS Code Extensions
 
-**Initial Setup for SwiftLens:**
+2. The project already has `.vscode/mcp.json` configured with SwiftLens
 
-1. **Build the project index** (required for cross-file analysis):
+3. Build the iOS project index:
    ```bash
    cd ios
    xcodebuild -project SomeSuperApp.xcodeproj \
      -scheme SomeSuperApp \
      -sdk iphonesimulator \
-     -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.5' \
      build
    ```
 
-2. **Ask your AI assistant** to build the index:
+4. Restart VS Code and start using it:
    ```
-   "Hey, run swift_build_index tool"
+   "Analyze ContentView.swift structure"
+   "Find all references to the ContentView struct"
+   "What's the type of the body property?"
    ```
 
-**SwiftLens Features:**
-- ✅ Semantic Swift code analysis with compiler-grade accuracy
-- ✅ Symbol references and definitions across files
-- ✅ Type information and documentation
-- ✅ Code validation and refactoring support
-- ✅ No configuration needed for basic usage
-
-See [SwiftLens documentation](https://github.com/swiftlens/swiftlens) for advanced features.
+**For other clients** (Claude Desktop, Cursor, etc.):
+See [docs/MCP_SETUP.md](../docs/MCP_SETUP.md)
 - Press `Cmd + R` or click the Play button
 
 ## Project Structure
