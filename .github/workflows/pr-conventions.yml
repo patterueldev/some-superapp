@@ -34,13 +34,13 @@ jobs:
           requireScope: false
           # Format: <type>: #<issue> [<Platform> - ] <description>
           # Platform is optional but preferred for multi-component projects
-          headerPattern: '^(\w+): #\d+(?: \[.+? - \])? (.+)$'
+          headerPattern: '^(\w+): #\d+(?: [A-Za-z]+ -)? (.+)$'
           headerPatternCorrespondence: type, subject
           subjectPattern: ^[A-Z].+[^.]$
           subjectPatternError: |
-            PR title must follow: <type>: #<issue> [<Platform> - ] <Description>
+            PR title must follow: <type>: #<issue> <Platform> - <description>
             - Issue number required: #123
-            - Platform optional but preferred: [Backend - ], [iOS - ], [Mobile - ]
+            - Platform optional but preferred: Backend - , iOS - , Mobile -
             - Start description with capital letter
             - No period at end
             - Use imperative mood ("Add" not "Added")
