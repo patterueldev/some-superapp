@@ -13,8 +13,8 @@
 
 ## Conventions
 - Branch: `<type>/#<issue>-<short-hyphenated-desc>`
-- Commit: `<type>: #<issue> [<Platform> - ] <description>`
-- PR title: `<type>: #<issue> [<Platform> - ] <description>`
+- Commit: `<type>: <description>`
+- PR title: `<type>: #<issue> <Platform> - <description>`
   - Issue number required
   - Platform optional but preferred (Backend, Web, Mobile, iOS, Android)
   - Start with capital letter, no period at end, use imperative mood
