@@ -9,35 +9,46 @@ import kotlinx.coroutines.flow.map
 import java.util.Date
 import org.koin.core.annotation.Single
 
-@Single
-class TodoRepository(private val todoDao: TodoDao) {
-    
-    fun getAllTodos(): Flow<List<Todo>> {
+// Contract
+interface TodoRepository {
+    fun getAllTodos(): Flow<List<Todo>>
+    suspend fun getTodoById(id: String): Todo?
+    suspend fun insertTodo(todo: Todo)
+    suspend fun updateTodo(todo: Todo)
+    suspend fun deleteTodoById(id: String)
+    suspend fun toggleCompletion(id: String)
+}
+
+// Implementation
+@Single(binds = [TodoRepository::class])
+class TodoRepositoryImpl(private val todoDao: TodoDao) : TodoRepository {
+
+    override fun getAllTodos(): Flow<List<Todo>> {
         return todoDao.getAllTodos().map { entities ->
             entities.map { it.toDomain() }
         }
     }
 
-    suspend fun getTodoById(id: String): Todo? {
+    override suspend fun getTodoById(id: String): Todo? {
         return todoDao.getTodoById(id)?.toDomain()
     }
 
-    suspend fun insertTodo(todo: Todo) {
+    override suspend fun insertTodo(todo: Todo) {
         require(todo.title.isNotBlank()) { "Title cannot be empty" }
         todoDao.insert(todo.toEntity())
     }
 
-    suspend fun updateTodo(todo: Todo) {
+    override suspend fun updateTodo(todo: Todo) {
         require(todo.title.isNotBlank()) { "Title cannot be empty" }
         val updatedTodo = todo.copy(updatedAt = Date())
         todoDao.update(updatedTodo.toEntity())
     }
 
-    suspend fun deleteTodoById(id: String) {
+    override suspend fun deleteTodoById(id: String) {
         todoDao.deleteById(id)
     }
 
-    suspend fun toggleCompletion(id: String) {
+    override suspend fun toggleCompletion(id: String) {
         val todo = todoDao.getTodoById(id) ?: return
         val updated = todo.copy(
             isCompleted = !todo.isCompleted,

@@ -12,10 +12,20 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
 
-@KoinViewModel
-class TodoListViewModel(private val repository: TodoRepository) : ViewModel() {
+// Base contract
+abstract class TodoListViewModel : ViewModel() {
+    abstract val todos: StateFlow<List<Todo>>
+    abstract val isLoading: StateFlow<Boolean>
 
-    val todos: StateFlow<List<Todo>> = repository.getAllTodos()
+    abstract fun addTodo(todo: Todo)
+    abstract fun toggleCompletion(id: String)
+    abstract fun deleteTodo(id: String)
+}
+
+@KoinViewModel(binds = [TodoListViewModel::class])
+class TodoListViewModelImpl(private val repository: TodoRepository) : TodoListViewModel() {
+
+    override val todos: StateFlow<List<Todo>> = repository.getAllTodos()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -23,9 +33,9 @@ class TodoListViewModel(private val repository: TodoRepository) : ViewModel() {
         )
 
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    override val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    fun addTodo(todo: Todo) {
+    override fun addTodo(todo: Todo) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
@@ -39,7 +49,7 @@ class TodoListViewModel(private val repository: TodoRepository) : ViewModel() {
         }
     }
 
-    fun toggleCompletion(id: String) {
+    override fun toggleCompletion(id: String) {
         viewModelScope.launch {
             try {
                 repository.toggleCompletion(id)
@@ -49,7 +59,7 @@ class TodoListViewModel(private val repository: TodoRepository) : ViewModel() {
         }
     }
 
-    fun deleteTodo(id: String) {
+    override fun deleteTodo(id: String) {
         viewModelScope.launch {
             try {
                 repository.deleteTodoById(id)

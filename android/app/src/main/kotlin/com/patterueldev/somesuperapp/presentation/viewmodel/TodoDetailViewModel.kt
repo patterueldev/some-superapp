@@ -10,16 +10,27 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
 
-@KoinViewModel
-class TodoDetailViewModel(private val repository: TodoRepository) : ViewModel() {
+// all viewmodels should follow this implementation
+abstract class TodoDetailViewModel : ViewModel() {
+    abstract val todo: StateFlow<Todo?>
+    abstract val isLoading: StateFlow<Boolean>
+
+    abstract fun loadTodo(id: String)
+    abstract fun updateTodo(todo: Todo)
+    abstract fun toggleCompletion(id: String)
+    abstract fun deleteTodo(id: String, onDeleted: () -> Unit)
+}
+
+@KoinViewModel(binds = [TodoDetailViewModel::class])
+class TodoDetailViewModelImpl(private val repository: TodoRepository) : TodoDetailViewModel() {
 
     private val _todo = MutableStateFlow<Todo?>(null)
-    val todo: StateFlow<Todo?> = _todo.asStateFlow()
+    override val todo: StateFlow<Todo?> = _todo.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    override val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    fun loadTodo(id: String) {
+    override fun loadTodo(id: String) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
@@ -32,7 +43,7 @@ class TodoDetailViewModel(private val repository: TodoRepository) : ViewModel() 
         }
     }
 
-    fun updateTodo(todo: Todo) {
+    override fun updateTodo(todo: Todo) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
@@ -45,7 +56,7 @@ class TodoDetailViewModel(private val repository: TodoRepository) : ViewModel() 
         }
     }
 
-    fun toggleCompletion(id: String) {
+    override fun toggleCompletion(id: String) {
         viewModelScope.launch {
             try {
                 repository.toggleCompletion(id)
@@ -58,7 +69,7 @@ class TodoDetailViewModel(private val repository: TodoRepository) : ViewModel() 
         }
     }
 
-    fun deleteTodo(id: String, onDeleted: () -> Unit) {
+    override fun deleteTodo(id: String, onDeleted: () -> Unit) {
         viewModelScope.launch {
             try {
                 repository.deleteTodoById(id)
