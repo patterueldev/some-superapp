@@ -2,7 +2,11 @@ import Foundation
 import CoreData
 
 class DataController: NSObject, ObservableObject, @unchecked Sendable {
-    let container: NSPersistentCloudKitContainer
+    // Concurrency-safe static flag: immutable constant to avoid global mutable state
+    static let isCloudKitEnabled: Bool = false
+
+    // Use a general NSPersistentContainer so we can fall back from CloudKit if needed
+    var container: NSPersistentContainer
 
     @Published var savedError: String?
 
@@ -14,7 +18,8 @@ class DataController: NSObject, ObservableObject, @unchecked Sendable {
         
         let todoEntity = NSEntityDescription()
         todoEntity.name = "TodoItem"
-        todoEntity.managedObjectClassName = "TodoItem"
+        // Bind the entity to the actual Swift class correctly
+        todoEntity.managedObjectClassName = NSStringFromClass(TodoItem.self)
         
         let idAttribute = NSAttributeDescription()
         idAttribute.name = "id"
@@ -70,26 +75,70 @@ class DataController: NSObject, ObservableObject, @unchecked Sendable {
         
         model.entities = [todoEntity]
         
-        self.container = NSPersistentCloudKitContainer(name: "SomeSuperApp", managedObjectModel: model)
-        super.init()
-
-        if let description = container.persistentStoreDescriptions.first {
-            description.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(
-                containerIdentifier: "iCloud.com.patterueldev.somesuperapp"
-            )
-            description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-            description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
-        }
-
-        // Load stores synchronously to ensure they're available immediately
-        container.loadPersistentStores { storeDescription, error in
-            if let error = error {
-                print("Failed to load Core Data: \(error.localizedDescription)")
-            } else {
-                print("Successfully loaded Core Data store")
+        if Self.isCloudKitEnabled {
+            // Try CloudKit first
+            let cloudKitContainer = NSPersistentCloudKitContainer(name: "SomeSuperApp", managedObjectModel: model)
+            var didLoadCloudKit = false
+            
+            if let description = cloudKitContainer.persistentStoreDescriptions.first {
+                description.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(
+                    containerIdentifier: "iCloud.com.patterueldev.somesuperapp"
+                )
+                description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+                description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
             }
+            
+            let group = DispatchGroup()
+            group.enter()
+            cloudKitContainer.loadPersistentStores { _, error in
+                if let error = error {
+                    print("Failed to load Core Data (CloudKit): \(error.localizedDescription)")
+                } else {
+                    print("Successfully loaded Core Data store (CloudKit)")
+                    didLoadCloudKit = true
+                }
+                group.leave()
+            }
+            group.wait()
+            
+            if didLoadCloudKit {
+                container = cloudKitContainer
+            } else {
+                // Fallback to local if CloudKit failed
+                let localContainer = NSPersistentContainer(name: "SomeSuperApp", managedObjectModel: model)
+                let localGroup = DispatchGroup()
+                localGroup.enter()
+                localContainer.loadPersistentStores { _, error in
+                    if let error = error {
+                        print("Failed to load Core Data (Local): \(error.localizedDescription)")
+                    } else {
+                        print("Successfully loaded Core Data store (Local)")
+                    }
+                    localGroup.leave()
+                }
+                localGroup.wait()
+                container = localContainer
+            }
+        } else {
+            // CloudKit disabled: use local store only
+            let localContainer = NSPersistentContainer(name: "SomeSuperApp", managedObjectModel: model)
+            let group = DispatchGroup()
+            group.enter()
+            localContainer.loadPersistentStores { _, error in
+                if let error = error {
+                    print("Failed to load Core Data (Local): \(error.localizedDescription)")
+                } else {
+                    print("Successfully loaded Core Data store (Local)")
+                }
+                group.leave()
+            }
+            group.wait()
+            container = localContainer
         }
-
+        
+        super.init()
+        
+        // Common context configuration
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
     }
