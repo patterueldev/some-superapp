@@ -10,7 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.koin.android.annotation.KoinViewModel
 
+@KoinViewModel
 class TodoListViewModel(private val repository: TodoRepository) : ViewModel() {
 
     val todos: StateFlow<List<Todo>> = repository.getAllTodos()

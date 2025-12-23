@@ -7,7 +7,9 @@ import com.patterueldev.somesuperapp.domain.model.Todo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.Date
+import org.koin.core.annotation.Single
 
+@Single
 class TodoRepository(private val todoDao: TodoDao) {
     
     fun getAllTodos(): Flow<List<Todo>> {
