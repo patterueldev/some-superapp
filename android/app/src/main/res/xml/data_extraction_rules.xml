@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <domain-config evolutionVersion="1">
+        <domain includeSubdomains="true">example.com</domain>
+        <exclude-domain includeSubdomains="true">example.com</exclude-domain>
+        <path-rule includeSubdomains="true">/path/to/data">example.com</path-rule>
+    </domain-config>
+</data-extraction-rules>

@@ -108,3 +108,28 @@ Closes #
 
 ## Additional Context
 <!-- Add any other context about the PR here -->
+
+---
+
+## 📋 CLI Usage (via `gh pr create`)
+
+⚠️ **IMPORTANT: Always use `--body-file` or write the body in the UI to avoid escaped newline issues**
+
+### ❌ WRONG (causes literal `\n` in PR body):
+```bash
+gh pr create --title "feat: #3 Android - Feature" --body "Line 1\n- Item 1\n- Item 2"
+```
+
+### ✅ CORRECT (use body file):
+```bash
+# Create pr_body.md with proper formatting
+gh pr create --title "feat: #3 Android - Feature" --body-file pr_body.md
+```
+
+### ✅ ALSO CORRECT (compose in UI):
+```bash
+gh pr create --title "feat: #3 Android - Feature"
+# Then edit the body in the browser or via gh pr edit
+```
+
+**The shell interprets `\n` literally when passed as a string argument. Always use a file or the UI editor.**
