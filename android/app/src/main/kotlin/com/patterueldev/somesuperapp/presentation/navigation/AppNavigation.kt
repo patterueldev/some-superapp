@@ -3,27 +3,27 @@ package com.patterueldev.somesuperapp.presentation.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.patterueldev.somesuperapp.data.repository.TodoRepository
 import com.patterueldev.somesuperapp.presentation.screen.AddEditTodoScreen
 import com.patterueldev.somesuperapp.presentation.screen.DashboardScreen
 import com.patterueldev.somesuperapp.presentation.screen.TodoDetailScreen
 import com.patterueldev.somesuperapp.presentation.screen.TodoListScreen
 import com.patterueldev.somesuperapp.presentation.viewmodel.TodoDetailViewModel
 import com.patterueldev.somesuperapp.presentation.viewmodel.TodoListViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun AppNavigation(repository: TodoRepository) {
+fun AppNavigation() {
     val navController = rememberNavController()
 
-    // Create ViewModels (in production, use Hilt or ViewModelProvider)
-    val todoListViewModel = remember { TodoListViewModel(repository) }
-    val todoDetailViewModel = remember { TodoDetailViewModel(repository) }
+    // Get ViewModels from Koin
+    val todoListViewModel: TodoListViewModel = koinViewModel()
+    val todoDetailViewModel: TodoDetailViewModel = koinViewModel()
 
     NavHost(
         navController = navController,
@@ -65,10 +65,9 @@ fun AppNavigation(repository: TodoRepository) {
             val todoId = backStackEntry.arguments?.getString("todoId") ?: return@composable
             val todo by todoDetailViewModel.todo.collectAsState()
 
-            // Load todo when screen appears
-            remember(todoId) {
+            // Load todo when screen appears or id changes
+            LaunchedEffect(todoId) {
                 todoDetailViewModel.loadTodo(todoId)
-                true
             }
 
             TodoDetailScreen(
@@ -101,11 +100,10 @@ fun AppNavigation(repository: TodoRepository) {
             val existingTodo by todoDetailViewModel.todo.collectAsState()
 
             // Load existing todo if editing
-            remember(todoId) {
+            LaunchedEffect(todoId) {
                 if (todoId != null) {
                     todoDetailViewModel.loadTodo(todoId)
                 }
-                true
             }
 
             AddEditTodoScreen(

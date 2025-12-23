@@ -77,6 +77,10 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
+    // Koin for Dependency Injection
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+
     // Testing
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)
