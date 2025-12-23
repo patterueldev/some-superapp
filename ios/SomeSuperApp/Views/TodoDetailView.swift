@@ -2,7 +2,7 @@ import SwiftUI
 
 struct TodoDetailView: View {
     @ObservedObject var viewModel: TodoViewModel
-    let todo: TodoItem
+    let todo: TodoData
     @Environment(\.dismiss) var dismiss
     
     @State private var isEditing = false
@@ -49,16 +49,28 @@ struct TodoDetailView: View {
 
 struct TodoViewView: View {
     @ObservedObject var viewModel: TodoViewModel
-    let todo: TodoItem
+    let todo: TodoData
     let dismiss: DismissAction
     @Binding var isEditing: Bool
     
+    // Track if the todo was deleted from the view model
+    var todoExists: Bool {
+        viewModel.todos.contains { $0.id == todo.id }
+    }
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        if !todoExists {
+            DispatchQueue.main.async {
+                dismiss()
+            }
+            return AnyView(EmptyView())
+        }
+        
+        return AnyView(VStack(alignment: .leading, spacing: 20) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack(spacing: 12) {
-                        Button(action: { viewModel.toggleCompletion(todo) }) {
+                        Button(action: { viewModel.toggleCompletion(id: todo.id) }) {
                             Image(systemName: todo.isCompleted ? "checkmark.circle.fill" : "circle")
                                 .font(.title)
                                 .foregroundStyle(todo.isCompleted ? .green : .gray)
@@ -156,8 +168,8 @@ struct TodoViewView: View {
             
             HStack(spacing: 12) {
                 Button(role: .destructive) {
-                    viewModel.deleteTodo(todo)
-                    dismiss()
+                    viewModel.deleteTodo(id: todo.id)
+                    // Let the todoExists check in the view body handle dismissal
                 } label: {
                     Label("Delete", systemImage: "trash")
                         .frame(maxWidth: .infinity)
@@ -175,13 +187,13 @@ struct TodoViewView: View {
             .padding(16)
         }
         .navigationTitle("Todo Details")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.inline))
     }
 }
 
 struct TodoEditView: View {
     @ObservedObject var viewModel: TodoViewModel
-    let todo: TodoItem
+    let todo: TodoData
     @Binding var isEditing: Bool
     @Binding var title: String
     @Binding var details: String
@@ -240,7 +252,7 @@ struct TodoEditView: View {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
                     viewModel.updateTodo(
-                        todo,
+                        id: todo.id,
                         title: title.trimmingCharacters(in: .whitespaces),
                         details: details.isEmpty ? nil : details,
                         location: location.isEmpty ? nil : location,
@@ -262,12 +274,12 @@ struct TodoEditView: View {
 }
 
 #Preview {
-    let context = DataController.shared.container.viewContext
-    let todo = TodoItem(context: context)
-    todo.title = "Sample Todo"
-    todo.details = "This is a sample todo"
-    todo.location = "Home"
-    todo.targetDate = Date()
+    let todo = TodoData(
+        title: "Sample Todo",
+        details: "This is a sample todo",
+        location: "Home",
+        targetDate: Date()
+    )
     
     return NavigationStack {
         TodoDetailView(viewModel: TodoViewModel(), todo: todo)

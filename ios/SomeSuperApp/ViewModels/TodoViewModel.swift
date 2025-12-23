@@ -5,7 +5,7 @@ class TodoViewModel: NSObject, NSFetchedResultsControllerDelegate, ObservableObj
     private let dataController: DataController
     private let fetchedResultsController: NSFetchedResultsController<TodoItem>
     
-    @Published var todos: [TodoItem] = []
+    @Published var todos: [TodoData] = []
     @Published var isLoading = false
     
     init(dataController: DataController = .shared) {
@@ -41,7 +41,8 @@ class TodoViewModel: NSObject, NSFetchedResultsControllerDelegate, ObservableObj
         ]
         
         do {
-            self.todos = try context.fetch(request)
+            let managedObjects = try context.fetch(request)
+            self.todos = managedObjects.map { TodoData(from: $0) }
         } catch {
             print("Failed to fetch todos: \(error.localizedDescription)")
         }
@@ -67,7 +68,7 @@ class TodoViewModel: NSObject, NSFetchedResultsControllerDelegate, ObservableObj
     }
     
     func updateTodo(
-        _ todo: TodoItem,
+        id: UUID,
         title: String,
         details: String? = nil,
         location: String? = nil,
@@ -75,29 +76,59 @@ class TodoViewModel: NSObject, NSFetchedResultsControllerDelegate, ObservableObj
         targetTime: Date? = nil,
         isCompleted: Bool
     ) {
-        todo.title = title
-        todo.details = details?.isEmpty == false ? details : nil
-        todo.location = location?.isEmpty == false ? location : nil
-        todo.targetDate = targetDate
-        todo.targetTime = targetTime
-        todo.isCompleted = isCompleted
-        todo.updatedAt = Date()
+        let context = dataController.container.viewContext
+        let request = NSFetchRequest<TodoItem>(entityName: "TodoItem")
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
         
-        dataController.save()
-        fetchTodos()
+        do {
+            if let todo = try context.fetch(request).first {
+                todo.title = title
+                todo.details = details?.isEmpty == false ? details : nil
+                todo.location = location?.isEmpty == false ? location : nil
+                todo.targetDate = targetDate
+                todo.targetTime = targetTime
+                todo.isCompleted = isCompleted
+                todo.updatedAt = Date()
+                
+                dataController.save()
+                fetchTodos()
+            }
+        } catch {
+            print("Failed to update todo: \(error.localizedDescription)")
+        }
     }
     
-    func deleteTodo(_ todo: TodoItem) {
-        dataController.delete(todo)
-        fetchTodos()
+    func deleteTodo(id: UUID) {
+        let context = dataController.container.viewContext
+        let request = NSFetchRequest<TodoItem>(entityName: "TodoItem")
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        do {
+            if let todo = try context.fetch(request).first {
+                dataController.delete(todo)
+                fetchTodos()
+            }
+        } catch {
+            print("Failed to delete todo: \(error.localizedDescription)")
+        }
     }
     
-    func toggleCompletion(_ todo: TodoItem) {
-        todo.isCompleted.toggle()
-        todo.updatedAt = Date()
+    func toggleCompletion(id: UUID) {
+        let context = dataController.container.viewContext
+        let request = NSFetchRequest<TodoItem>(entityName: "TodoItem")
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
         
-        dataController.save()
-        fetchTodos()
+        do {
+            if let todo = try context.fetch(request).first {
+                todo.isCompleted.toggle()
+                todo.updatedAt = Date()
+                
+                dataController.save()
+                fetchTodos()
+            }
+        } catch {
+            print("Failed to toggle completion: \(error.localizedDescription)")
+        }
     }
     
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {

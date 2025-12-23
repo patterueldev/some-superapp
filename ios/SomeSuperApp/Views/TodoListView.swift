@@ -26,15 +26,15 @@ struct TodoListView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List {
-                    ForEach(viewModel.todos, id: \.self) { todo in
+                    ForEach(viewModel.todos, id: \.id) { todo in
                         NavigationLink(destination: TodoDetailView(viewModel: viewModel, todo: todo)) {
                             TodoRowView(todo: todo, onToggle: {
-                                viewModel.toggleCompletion(todo)
+                                viewModel.toggleCompletion(id: todo.id)
                             })
                         }
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
-                                viewModel.deleteTodo(todo)
+                                viewModel.deleteTodo(id: todo.id)
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
@@ -68,7 +68,7 @@ struct TodoListView: View {
 }
 
 struct TodoRowView: View {
-    let todo: TodoItem
+    let todo: TodoData
     let onToggle: () -> Void
     
     var body: some View {
