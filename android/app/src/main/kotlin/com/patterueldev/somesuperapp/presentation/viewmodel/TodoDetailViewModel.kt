@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
+import java.util.*
 
 // all viewmodels should follow this implementation
 abstract class TodoDetailViewModel : ViewModel() {
@@ -17,6 +18,7 @@ abstract class TodoDetailViewModel : ViewModel() {
 
     abstract fun loadTodo(id: String)
     abstract fun updateTodo(todo: Todo)
+    abstract fun updateTargetDate(date: Date?)
     abstract fun toggleCompletion(id: String)
     abstract fun deleteTodo(id: String, onDeleted: () -> Unit)
 }
@@ -53,6 +55,13 @@ class TodoDetailViewModelImpl(private val repository: TodoRepository) : TodoDeta
             } finally {
                 _isLoading.value = false
             }
+        }
+    }
+
+    override fun updateTargetDate(date: Date?) {
+        _todo.value?.let { current ->
+            val updated = current.copy(dueDate = date)
+            updateTodo(updated)
         }
     }
 

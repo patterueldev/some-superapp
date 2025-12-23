@@ -79,6 +79,9 @@ fun AppNavigation() {
                 onToggleCompletion = { id ->
                     todoDetailViewModel.toggleCompletion(id)
                 },
+                onUpdateTargetDate = { date ->
+                    todoDetailViewModel.updateTargetDate(date)
+                },
                 onDelete = { id ->
                     todoDetailViewModel.deleteTodo(id) {
                         navController.popBackStack()

@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.patterueldev.somesuperapp.domain.model.Todo
 import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -19,9 +19,12 @@ fun TodoDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToEdit: (String) -> Unit,
     onToggleCompletion: (String) -> Unit,
+    onUpdateTargetDate: (Date?) -> Unit = {},
     onDelete: (String) -> Unit
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -108,23 +111,35 @@ fun TodoDetailScreen(
                             Divider()
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.DateRange,
-                                    contentDescription = "Due Date",
+                                    contentDescription = "Target Date",
                                     tint = MaterialTheme.colorScheme.primary
                                 )
-                                Column {
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
                                     Text(
-                                        text = "Due Date",
+                                        text = "Target Date",
                                         style = MaterialTheme.typography.labelMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
-                                    val dateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault())
+                                    val dateTimeFormat = SimpleDateFormat("MMMM dd, yyyy • hh:mm a", Locale.getDefault())
                                     Text(
-                                        text = dateFormat.format(todo.dueDate),
+                                        text = dateTimeFormat.format(todo.dueDate),
                                         style = MaterialTheme.typography.bodyLarge
+                                    )
+                                }
+                                IconButton(onClick = { showDatePicker = true }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = "Edit Target Date",
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             }
@@ -211,4 +226,145 @@ fun TodoDetailScreen(
             }
         )
     }
+
+    if (showDatePicker && todo != null) {
+        DatePickerDialog(
+            onDismiss = { showDatePicker = false },
+            onConfirm = { selectedDateMillis ->
+                if (selectedDateMillis != null) {
+                    val calendar = Calendar.getInstance().apply {
+                        timeInMillis = selectedDateMillis
+                    }
+                    val currentTodo = todo.dueDate
+                    if (currentTodo != null) {
+                        val currentCalendar = Calendar.getInstance().apply {
+                            time = currentTodo
+                        }
+                        // Preserve time from current due date
+                        calendar.set(Calendar.HOUR_OF_DAY, currentCalendar.get(Calendar.HOUR_OF_DAY))
+                        calendar.set(Calendar.MINUTE, currentCalendar.get(Calendar.MINUTE))
+                    }
+                    onUpdateTargetDate(calendar.time)
+                    showDatePicker = false
+                    showTimePicker = true
+                }
+            },
+            initialSelectedDateMillis = todo.dueDate?.time
+        )
+    }
+
+    if (showTimePicker && todo != null) {
+        TimePickerDialog(
+            onDismiss = { showTimePicker = false },
+            onConfirm = { hour, minute ->
+                val calendar = Calendar.getInstance().apply {
+                    time = todo.dueDate ?: Date()
+                    set(Calendar.HOUR_OF_DAY, hour)
+                    set(Calendar.MINUTE, minute)
+                }
+                onUpdateTargetDate(calendar.time)
+                showTimePicker = false
+            },
+            initialHour = if (todo.dueDate != null) {
+                Calendar.getInstance().apply { time = todo.dueDate }.get(Calendar.HOUR_OF_DAY)
+            } else {
+                12
+            },
+            initialMinute = if (todo.dueDate != null) {
+                Calendar.getInstance().apply { time = todo.dueDate }.get(Calendar.MINUTE)
+            } else {
+                0
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DatePickerDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (Long?) -> Unit,
+    initialSelectedDateMillis: Long? = null
+) {
+    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialSelectedDateMillis)
+
+    androidx.compose.material3.DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = { onConfirm(datePickerState.selectedDateMillis) }) {
+                Text("OK")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    ) {
+        DatePicker(state = datePickerState)
+    }
+}
+
+@Composable
+private fun TimePickerDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (hour: Int, minute: Int) -> Unit,
+    initialHour: Int = 12,
+    initialMinute: Int = 0
+) {
+    var hour by remember { mutableStateOf(initialHour) }
+    var minute by remember { mutableStateOf(initialMinute) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select Time") },
+        text = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Hour", style = MaterialTheme.typography.labelSmall)
+                        OutlinedTextField(
+                            value = hour.toString().padStart(2, '0'),
+                            onValueChange = { value ->
+                                hour = value.toIntOrNull()?.coerceIn(0, 23) ?: hour
+                            },
+                            modifier = Modifier.width(80.dp),
+                            textStyle = MaterialTheme.typography.headlineMedium,
+                            singleLine = true
+                        )
+                    }
+                    Text(":", style = MaterialTheme.typography.headlineMedium)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Min", style = MaterialTheme.typography.labelSmall)
+                        OutlinedTextField(
+                            value = minute.toString().padStart(2, '0'),
+                            onValueChange = { value ->
+                                minute = value.toIntOrNull()?.coerceIn(0, 59) ?: minute
+                            },
+                            modifier = Modifier.width(80.dp),
+                            textStyle = MaterialTheme.typography.headlineMedium,
+                            singleLine = true
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(hour, minute) }) {
+                Text("OK")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
